@@ -4,3 +4,7 @@ maintainers:
 - justincormack 
 - EricHripko
 - ulyssessouza
+- glours
+- milas
+- laurazard
+- aevesdocker

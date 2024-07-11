@@ -1,29 +1,18 @@
-# The Compose Specification - Deployment support
-{:.no_toc}
+# Compose Deploy Specification
 
-*Note:* Deployment is an OPTIONAL part of the Compose Specification
+> **Note:** 
+>
+> Deploy is an optional part of the Compose Specification
 
-* ToC
-{:toc}
+The Compose Deploy Specification lets you declare additional metadata on services so Compose gets
+relevant data to allocate adequate resources on the platform and configure them to match your needs.
 
-## Introduction
-
-Compose specification is a platform-neutral way to define multi-container applications. A Compose implementation supporting
-deployment of application model MAY require some additional metadata as the Compose application model is way too abstract
-to reflect actual infrastructure needs per service, or lifecycle constraints.
-
-Compose Specification Deployment allows users to declare additional metadata on services so Compose implementations get
-relevant data to allocate adequate resources on platform and configure them to match user's needs.
-
-## Definitions
-
-Compose Specification is extended to support an OPTIONAL `deploy` subsection on services. This section define runtime requirements
-for a service.
+## Attributes
 
 ### endpoint_mode
 
 `endpoint_mode` specifies a service discovery method for external clients connecting to a service. Default and available values
-are platform specific, anyway the Compose specification define two canonical values:
+are platform specific but the Compose Deploy Specification defines two canonical values:
 
 * `endpoint_mode: vip`: Assigns the service a virtual IP (VIP) that acts as the front end for clients to reach the service
   on a network. Platform routes requests between the client and nodes running the service, without client knowledge of how
@@ -35,7 +24,7 @@ are platform specific, anyway the Compose specification define two canonical val
 ```yml
 services:
   frontend:
-    image: awesome/webapp
+    image: example/webapp
     ports:
       - "8080:80"
     deploy:
@@ -46,13 +35,13 @@ services:
 
 ### labels
 
-`labels` specifies metadata for the service. These labels MUST *only* be set on the service and *not* on any containers for the service.
-This assumes the platform as some native concept of "service" that can match Compose application model.
+`labels` specifies metadata for the service. These labels are only set on the service and not on any containers for the service.
+This assumes the platform has some native concept of "service" that can match the Compose application model.
 
 ```yml
 services:
   frontend:
-    image: awesome/webapp
+    image: example/webapp
     deploy:
       labels:
         com.example.description: "This label will appear on the web service"
@@ -60,24 +49,24 @@ services:
 
 ### mode
 
-`mode` define the replication model used to run the service on platform. Either `global` (exactly one container per physical node) or `replicated` (a specified number of containers). The default is `replicated`.
+`mode` defines the replication model used to run the service on the  platform. Either `global`, exactly one container per physical node, or `replicated`, a specified number of containers. The default is `replicated`.
 
 ```yml
 services:
   frontend:
-    image: awesome/webapp
+    image: example/webapp
     deploy:
       mode: global
 ```
 
 ### placement
 
-`placement` specifies constraints and preferences for platform to select a physical node to run service containers.
+`placement` specifies constraints and preferences for the platform to select a physical node to run service containers.
 
 #### constraints
 
-`constraints` defines a REQUIRED property the platform's node MUST fulfill to run service container. Can be set either
-by a list or a map with string values.
+`constraints` defines a required property the platform's node must fulfill to run the service container.
+See example usage [here](https://docs.docker.com/reference/cli/docker/service/create/#constraint)
 
 ```yml
 deploy:
@@ -86,41 +75,27 @@ deploy:
       - disktype=ssd
 ```
 
-```yml
-deploy:
-  placement:
-    constraints:
-      disktype: ssd
-```
-
 #### preferences
 
-`preferences` defines a property the platform's node SHOULD fulfill to run service container. Can be set either
-by a list or a map with string values.
+`preferences` defines a strategy (currently `spread` is the only supported strategy) to spread tasks evenly 
+over the values of the datacenter node label. See example usage [here]https://docs.docker.com/reference/cli/docker/service/create/#placement-pref)
 
 ```yml
 deploy:
   placement:
     preferences:
-      - datacenter=us-east
-```
-
-```yml
-deploy:
-  placement:
-    preferences:
-      datacenter: us-east
+      - spread: node.labels.zone
 ```
 
 ### replicas
 
-If the service is `replicated` (which is the default), `replicas` specifies the number of containers that SHOULD be
+If the service is `replicated` (which is the default), `replicas` specifies the number of containers that should be
 running at any given time.
 
 ```yml
 services:
-  fronted:
-    image: awesome/webapp
+  frontend:
+    image: example/webapp
     deploy:
       mode: replicated
       replicas: 6
@@ -129,15 +104,15 @@ services:
 ### resources
 
 `resources` configures physical resource constraints for container to run on platform. Those constraints can be configured
-as a:
+as:
 
-- `limits`: The platform MUST prevent container to allocate more
-- `reservations`: The platform MUST guarantee container can allocate at least the configured amount
+- `limits`: The platform must prevent the container to allocate more.
+- `reservations`: The platform must guarantee the container can allocate at least the configured amount.
 
 ```yml
 services:
   frontend:
-    image: awesome/webapp
+    image: example/webapp
     deploy:
       resources:
         limits:
@@ -151,21 +126,21 @@ services:
 
 #### cpus
 
-`cpus` configures a limit or reservation for how much of the available CPU resources (as number of cores) a container can use.
+`cpus` configures a limit or reservation for how much of the available CPU resources, as number of cores, a container can use.
 
 #### memory
 
-`memory` configures a limit or reservation on the amount of memory a container can allocate, set as a string expressing a [byte value](spec.md#specifying-byte-values).
+`memory` configures a limit or reservation on the amount of memory a container can allocate, set as a string expressing a [byte value](11-extension.md#specifying-byte-values).
 
 #### pids
 
-`pids_limit` tunes a container’s PIDs limit, set as an integer.
+`pids` tunes a container’s PIDs limit, set as an integer.
 
 #### devices
 
 `devices` configures reservations of the devices a container can use. It contains a list of reservations, each set as an object with the following parameters: `capabilities`, `driver`, `count`, `device_ids` and `options`.
 
-Devices are reserved using a list of capabilities, making `capabilities` the only required field. A device MUST satisfy all the requested capabilities for a successful reservation.
+Devices are reserved using a list of capabilities, making `capabilities` the only required field. A device must satisfy all the requested capabilities for a successful reservation.
 
 ##### capabilities
 
@@ -175,7 +150,7 @@ The following generic capabilities are recognized today:
 - `gpu`: Graphics accelerator
 - `tpu`: AI accelerator
 
-To avoid name clashes, driver specific capabilities MUST be prefixed with the driver name.
+To avoid name clashes, driver specific capabilities must be prefixed with the driver name.
 For example, reserving an nVidia CUDA-enabled accelerator might look like this:
 
 ```yml
@@ -201,7 +176,7 @@ deploy:
 
 ##### count
 
-If `count` is set to `all` or not specified, Compose implementations MUST reserve all devices that satisfy the requested capabilities. Otherwise, Compose implementations MUST reserve at least the number of devices specified. The value is specified as an integer.
+If `count` is set to `all` or not specified, Compose reserves all devices that satisfy the requested capabilities. Otherwise, Compose reserves at least the number of devices specified. The value is specified as an integer.
 
 ```yml
 deploy:
@@ -212,11 +187,11 @@ deploy:
           count: 2
 ```
 
-`count` and `device_ids` fields are exclusive. Compose implementations MUST return an error if both are specified.
+`count` and `device_ids` fields are exclusive. Compose returns an error if both are specified.
 
 ##### device_ids
 
-If `device_ids` is set, Compose implementations MUST reserve devices with the specified IDs providing they satisfy the requested capabilities. The value is specified as a list of strings.
+If `device_ids` is set, Compose reserves devices with the specified IDs provided they satisfy the requested capabilities. The value is specified as a list of strings.
 
 ```yml
 deploy:
@@ -227,7 +202,7 @@ deploy:
           device_ids: ["GPU-f123d1c9-26bb-df9b-1c23-4a731f61d8c7"]
 ```
 
-`count` and `device_ids` fields are exclusive. Compose implementations MUST return an error if both are specified.
+`count` and `device_ids` fields are exclusive. Compose returns an error if both are specified.
 
 ##### options
 
@@ -246,13 +221,16 @@ deploy:
 
 ### restart_policy
 
-`restart_policy` configures if and how to restart containers when they exit. If `restart_policy` is not set, Compose implementations MUST consider `restart` field set by service configuration.
+`restart_policy` configures if and how to restart containers when they exit. If `restart_policy` is not set, Compose considers the `restart` field set by the service configuration.
 
-- `condition`: One of `none`, `on-failure` or `any` (default: `any`).
-- `delay`: How long to wait between restart attempts, specified as a [duration](spec.md#specifying-durations) (default: 0).
+- `condition`. When set to:
+  - `none`, containers are not automatically restarted regardless of the exit status.
+  - `on-failure`, the container is restarted if it exits due to an error, which manifests as a non-zero exit code.
+  - `any` (default), containers are restarted regardless of the exit status. 
+- `delay`: How long to wait between restart attempts, specified as a [duration](11-extension.md#specifying-durations). The default is 0, meaning restart attempts can occur immediately.
 - `max_attempts`: How many times to attempt to restart a container before giving up (default: never give up). If the restart does not
   succeed within the configured `window`, this attempt doesn't count toward the configured `max_attempts` value.
-  For example, if `max_attempts` is set to '2', and the restart fails on the first attempt, more than two restarts MUST be attempted.
+  For example, if `max_attempts` is set to '2', and the restart fails on the first attempt, more than two restarts must be attempted.
 - `window`: How long to wait before deciding if a restart has succeeded, specified as a [duration](#specifying-durations) (default:
   decide immediately).
 

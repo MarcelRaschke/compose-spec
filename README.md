@@ -3,7 +3,7 @@
 
 The Compose specification establishes a standard for the definition of
 multi-container platform-agnostic applications. The specification can be found
-[here](spec.md).
+[here](00-overview.md).
 
 * ToC
 {:toc}
@@ -55,7 +55,7 @@ The specification and code is licensed under the Apache 2.0 license found in the
 
 ## Implementations
 
-[Docker Compose](https://github.com/docker/compose) is the Rerefence Implementation of the Compose Specification.
+[Docker Compose](https://github.com/docker/compose) is the Reference Implementation of the Compose Specification.
 
 Compose Specification is also implemented by:
 
@@ -63,6 +63,7 @@ Compose Specification is also implemented by:
 * [Nerdctl](https://github.com/containerd/nerdctl)
 * [Okteto Stacks](https://okteto.com/docs/reference/stacks)
 * [Docker Cloud Integrations](https://github.com/docker/compose-cli)
+* [Podman Compose](https://github.com/containers/podman-compose)
 
 | Metadata |                  |
 | -------- | ---------------: |
